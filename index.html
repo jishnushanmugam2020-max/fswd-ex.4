@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TaskDesk Task Management</title>
+
+<style>
+  * {
+    box-sizing: border-box;
+  }
+  body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f7f2;
+    margin: 0;
+    padding: 0;
+  }
+
+  /* Header */
+  .header {
+    background-color: #154d29;
+    color: white;
+    padding: 15px 25px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .header h1 {
+    margin: 0;
+  }
+  .menu a {
+    color: white;
+    text-decoration: none;
+    border: 2px solid white;
+    padding: 8px 22px;
+    border-radius: 20px;
+    font-size: 15px;
+    margin-left: 8px;
+    display: inline-block;
+  }
+  .menu a.active {
+    background-color: #e2412f;
+    border-color: #e2412f;
+  }
+
+  .container {
+    width: 95%;
+    max-width: 1100px;
+    margin: 20px auto;
+  }
+
+  /* Summary boxes */
+  .summary {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 15px;
+    margin-bottom: 20px;
+  }
+  .summary-box {
+    background-color: white;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    padding: 14px;
+    text-align: center;
+  }
+  .summary-box .number {
+    font-size: 30px;
+    font-weight: bold;
+  }
+  .summary-box.todo .number {
+    color: #d98a00;
+  }
+  .summary-box.progress .number {
+    color: #2563b8;
+  }
+  .summary-box.done .number {
+    color: #1f6b3a;
+  }
+
+  /* Task form */
+  .task-form {
+    background-color: white;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    padding: 20px;
+    max-width: 520px;
+    margin-bottom: 25px;
+  }
+  label {
+    display: block;
+    margin-top: 10px;
+    font-weight: bold;
+    font-size: 14px;
+  }
+  input, textarea, select {
+    width: 100%;
+    padding: 8px;
+    margin-top: 4px;
+    font-size: 14px;
+  }
+  .error {
+    color: red;
+    font-size: 13px;
+  }
+  .main-btn {
+    width: 100%;
+    background-color: #e2412f;
+    color: white;
+    border: none;
+    padding: 12px;
+    font-size: 16px;
+    margin-top: 15px;
+    cursor: pointer;
+    border-radius: 6px;
+  }
+  .row-two {
+    display: flex;
+    gap: 10px;
+  }
+  .row-two div {
+    flex: 1;
+  }
+
+  /* Filter buttons */
+  .filters {
+    margin-bottom: 15px;
+  }
+  .filters button {
+    background-color: white;
+    border: 1.5px solid #ccc;
+    padding: 7px 16px;
+    border-radius: 20px;
+    cursor: pointer;
+    margin: 0 6px 6px 0;
+    font-size: 14px;
+  }
+  .filters button.active {
+    background-color: #1f6b3a;
+    border-color: #1f6b3a;
+    color: white;
+  }
+
+  /* Cards: always 2 in each row */
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+  }
+  .item {
+    background-color: white;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    padding: 12px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .item.finished {
+    opacity: 0.65;
+  }
+  .item .emoji {
+    font-size: 46px;
+    width: 70px;
+    text-align: center;
+  }
+  .item .details {
+    flex: 1;
+  }
+  .item h3 {
+    margin: 0 0 4px 0;
+    font-size: 16px;
+  }
+  .item p {
+    color: #666;
+    font-size: 13px;
+    margin: 0 0 4px 0;
+  }
+  .item .info {
+    font-size: 13px;
+    color: #154d29;
+    font-weight: bold;
+  }
+  .item .late {
+    color: #e2412f;
+    font-size: 13px;
+    font-weight: bold;
+  }
+  .item .bottom {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 8px;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  /* Status tags */
+  .tag {
+    padding: 5px 12px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: bold;
+    color: white;
+  }
+  .tag.ToDo {
+    background-color: #d98a00;
+  }
+  .tag.InProgress {
+    background-color: #2563b8;
+  }
+  .tag.Done {
+    background-color: #1f6b3a;
+  }
+
+  .start-btn {
+    background-color: #2563b8;
+    color: white;
+    border: none;
+    padding: 7px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  .complete-btn {
+    background-color: #1f6b3a;
+    color: white;
+    border: none;
+    padding: 7px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  .delete-btn {
+    background-color: #e2412f;
+    color: white;
+    border: none;
+    padding: 7px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+
+  .empty-text {
+    color: #666;
+    padding: 20px 0;
+  }
+
+  /* Popup */
+  .popup-bg {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    overflow: auto;
+  }
+  .popup-box {
+    background-color: white;
+    width: 360px;
+    max-width: 90%;
+    margin: 120px auto;
+    padding: 25px;
+    border-radius: 12px;
+    text-align: center;
+  }
+  .tick {
+    width: 70px;
+    height: 70px;
+    line-height: 70px;
+    font-size: 38px;
+    color: white;
+    background-color: #1f6b3a;
+    border-radius: 50%;
+    margin: 0 auto 10px auto;
+  }
+  .done-btn {
+    background-color: #1f6b3a;
+    color: white;
+    border: none;
+    padding: 10px 30px;
+    border-radius: 6px;
+    cursor: pointer;
+    margin-top: 10px;
+  }
+
+  /* Small phones: keep 2 per row, emoji above the text */
+  @media (max-width: 600px) {
+    .grid {
+      gap: 8px;
+    }
+    .item {
+      flex-direction: column;
+      text-align: center;
+      padding: 10px;
+    }
+    .item .emoji {
+      font-size: 36px;
+      width: auto;
+    }
+    .item .details {
+      width: 100%;
+    }
+    .item .bottom {
+      flex-direction: column;
+    }
+    .item h3 {
+      font-size: 14px;
+    }
+    .item p {
+      display: none;
+    }
+    .summary {
+      gap: 8px;
+    }
+    .row-two {
+      flex-direction: column;
+      gap: 0;
+    }
+  }
+</style>
+</head>
+
+<body>
+
+  <div class="header">
+    <h1>TaskDesk</h1>
+    <div class="menu">
+      <a href="tasks.html" class="active">Tasks</a>
+      <a href="feedback.html">Feedback</a>
+    </div>
+  </div>
+
+  <div class="container">
+
+    <h2>My Tasks</h2>
+
+    <div class="summary">
+      <div class="summary-box todo">
+        <div class="number" id="countTodo">0</div>
+        <div>To Do</div>
+      </div>
+      <div class="summary-box progress">
+        <div class="number" id="countProgress">0</div>
+        <div>In Progress</div>
+      </div>
+      <div class="summary-box done">
+        <div class="number" id="countDone">0</div>
+        <div>Done</div>
+      </div>
+    </div>
+
+    <h2>Add a New Task</h2>
+    <div class="task-form">
+
+      <label>Task Title</label>
+      <input type="text" id="taskTitle">
+      <div class="error" id="errTitle"></div>
+
+      <label>Description</label>
+      <textarea id="taskDesc" rows="3"></textarea>
+      <div class="error" id="errDesc"></div>
+
+      <label>Assigned To</label>
+      <input type="text" id="taskPerson">
+      <div class="error" id="errPerson"></div>
+
+      <div class="row-two">
+        <div>
+          <label>Priority</label>
+          <select id="taskPriority">
+            <option value="High">High</option>
+            <option value="Medium" selected>Medium</option>
+            <option value="Low">Low</option>
+          </select>
+        </div>
+        <div>
+          <label>Due Date</label>
+          <input type="date" id="taskDue">
+          <div class="error" id="errDue"></div>
+        </div>
+      </div>
+
+      <button class="main-btn" onclick="addTask()">Add Task</button>
+    </div>
+
+    <h2>All Tasks</h2>
+    <div class="filters">
+      <button id="f-All" class="active" onclick="setFilter('All')">All</button>
+      <button id="f-ToDo" onclick="setFilter('ToDo')">To Do</button>
+      <button id="f-InProgress" onclick="setFilter('InProgress')">In Progress</button>
+      <button id="f-Done" onclick="setFilter('Done')">Done</button>
+    </div>
+
+    <div class="grid" id="taskList"></div>
+
+  </div>
+
+  <!-- MESSAGE POPUP -->
+  <div class="popup-bg" id="msgPopup">
+    <div class="popup-box">
+      <div class="tick">&#10003;</div>
+      <h2 id="msgTitle"></h2>
+      <p id="msgText"></p>
+      <button class="done-btn" onclick="closeMsgPopup()">Done</button>
+    </div>
+  </div>
+
+<script>
+  // Default tasks (shown the first time)
+  var defaultTasks = [
+    { id: 1, title: "Design home page",   desc: "Create the layout and colors",      person: "Arun",    priority: "High",   due: "2026-11-14", status: "InProgress" },
+    { id: 2, title: "Write test cases",   desc: "Test login and signup pages",       person: "Priya",   priority: "Medium", due: "2026-11-18", status: "ToDo" },
+    { id: 3, title: "Fix mobile menu",    desc: "Menu not opening on small phones",  person: "Karthik", priority: "High",   due: "2026-11-09", status: "ToDo" },
+    { id: 4, title: "Update user guide",  desc: "Add new screenshots",               person: "Meena",   priority: "Low",    due: "2026-11-25", status: "Done" }
+  ];
+
+  var tasks = [];
+  var currentFilter = "All";
+
+  // Load tasks from the browser memory
+  function loadTasks() {
+    var saved = null;
+    try {
+      saved = localStorage.getItem("taskDeskData");
+    } catch (e) {
+      saved = null;
+    }
+    if (saved) {
+      tasks = JSON.parse(saved);
+    } else {
+      tasks = defaultTasks;
+    }
+  }
+
+  // Save tasks in the browser memory
+  function saveTasks() {
+    try {
+      localStorage.setItem("taskDeskData", JSON.stringify(tasks));
+    } catch (e) {
+      // saving not available, ignore
+    }
+  }
+
+  // Make user text safe to show on the page
+  function safeText(text) {
+    text = String(text);
+    text = text.replace(/&/g, "&amp;");
+    text = text.replace(/</g, "&lt;");
+    text = text.replace(/>/g, "&gt;");
+    return text;
+  }
+
+  // Today's date as yyyy-mm-dd
+  function getToday() {
+    var d = new Date();
+    var month = d.getMonth() + 1;
+    var day = d.getDate();
+    if (month < 10) { month = "0" + month; }
+    if (day < 10) { day = "0" + day; }
+    return d.getFullYear() + "-" + month + "-" + day;
+  }
+
+  // Emoji for each priority
+  function getEmoji(priority) {
+    if (priority == "High") { return "🔥"; }
+    if (priority == "Medium") { return "⚡"; }
+    return "🌱";
+  }
+
+  // Status name to show on the tag
+  function statusName(status) {
+    if (status == "ToDo") { return "To Do"; }
+    if (status == "InProgress") { return "In Progress"; }
+    return "Done";
+  }
+
+  // Show all cards and counts
+  function showAll() {
+    var html = "";
+    var todo = 0;
+    var progress = 0;
+    var done = 0;
+    var shown = 0;
+    var today = getToday();
+
+    for (var i = 0; i < tasks.length; i++) {
+      var t = tasks[i];
+
+      if (t.status == "ToDo") { todo++; }
+      if (t.status == "InProgress") { progress++; }
+      if (t.status == "Done") { done++; }
+
+      if (currentFilter == "All" || currentFilter == t.status) {
+        shown++;
+        var finishedClass = "";
+        if (t.status == "Done") {
+          finishedClass = " finished";
+        }
+
+        html += '<div class="item' + finishedClass + '">';
+        html += '<div class="emoji">' + getEmoji(t.priority) + '</div>';
+        html += '<div class="details">';
+        html += '<h3>' + safeText(t.title) + '</h3>';
+        html += '<p>' + safeText(t.desc) + '</p>';
+        html += '<div class="info">' + safeText(t.person) + ' | ' + t.priority + ' priority | Due: ' + t.due + '</div>';
+
+        if (t.status != "Done" && t.due < today) {
+          html += '<div class="late">Overdue!</div>';
+        }
+
+        html += '<div class="bottom">';
+        html += '<span class="tag ' + t.status + '">' + statusName(t.status) + '</span>';
+        if (t.status == "ToDo") {
+          html += '<button class="start-btn" onclick="changeStatus(' + t.id + ', \'InProgress\')">Start</button>';
+        }
+        if (t.status == "InProgress") {
+          html += '<button class="complete-btn" onclick="changeStatus(' + t.id + ', \'Done\')">Complete</button>';
+        }
+        html += '<button class="delete-btn" onclick="deleteTask(' + t.id + ')">Delete</button>';
+        html += '</div></div></div>';
+      }
+    }
+
+    if (shown == 0) {
+      html = '<div class="empty-text">No tasks found.</div>';
+    }
+
+    document.getElementById("taskList").innerHTML = html;
+    document.getElementById("countTodo").innerHTML = todo;
+    document.getElementById("countProgress").innerHTML = progress;
+    document.getElementById("countDone").innerHTML = done;
+  }
+
+  // Change the filter
+  function setFilter(filter) {
+    currentFilter = filter;
+    document.getElementById("f-All").className = "";
+    document.getElementById("f-ToDo").className = "";
+    document.getElementById("f-InProgress").className = "";
+    document.getElementById("f-Done").className = "";
+    document.getElementById("f-" + filter).className = "active";
+    showAll();
+  }
+
+  // Find a task by id
+  function getTask(id) {
+    for (var i = 0; i < tasks.length; i++) {
+      if (tasks[i].id == id) {
+        return tasks[i];
+      }
+    }
+  }
+
+  // Add a new task
+  function addTask() {
+    var title = document.getElementById("taskTitle").value;
+    var desc = document.getElementById("taskDesc").value;
+    var person = document.getElementById("taskPerson").value;
+    var priority = document.getElementById("taskPriority").value;
+    var due = document.getElementById("taskDue").value;
+    var valid = true;
+
+    document.getElementById("errTitle").innerHTML = "";
+    document.getElementById("errDesc").innerHTML = "";
+    document.getElementById("errPerson").innerHTML = "";
+    document.getElementById("errDue").innerHTML = "";
+
+    if (title.length < 2) {
+      document.getElementById("errTitle").innerHTML = "Please enter the task title.";
+      valid = false;
+    }
+    if (desc.length < 5) {
+      document.getElementById("errDesc").innerHTML = "Please describe the task.";
+      valid = false;
+    }
+    if (person.length < 2) {
+      document.getElementById("errPerson").innerHTML = "Please enter who will do this task.";
+      valid = false;
+    }
+    if (due == "") {
+      document.getElementById("errDue").innerHTML = "Choose a due date.";
+      valid = false;
+    }
+
+    if (valid == true) {
+      tasks.unshift({
+        id: new Date().getTime(),
+        title: title,
+        desc: desc,
+        person: person,
+        priority: priority,
+        due: due,
+        status: "ToDo"
+      });
+      saveTasks();
+      showAll();
+
+      document.getElementById("taskTitle").value = "";
+      document.getElementById("taskDesc").value = "";
+      document.getElementById("taskPerson").value = "";
+      document.getElementById("taskDue").value = "";
+
+      showMessage("Task Added!", "Your task \"" + title + "\" has been added to the To Do list.");
+    }
+  }
+
+  // Change the status of a task
+  function changeStatus(id, status) {
+    var t = getTask(id);
+    t.status = status;
+    saveTasks();
+    showAll();
+    if (status == "InProgress") {
+      showMessage("Task Started!", "\"" + t.title + "\" is now In Progress.");
+    } else {
+      showMessage("Task Completed!", "Great job! \"" + t.title + "\" is now Done.");
+    }
+  }
+
+  // Delete a task
+  function deleteTask(id) {
+    for (var i = 0; i < tasks.length; i++) {
+      if (tasks[i].id == id) {
+        tasks.splice(i, 1);
+        break;
+      }
+    }
+    saveTasks();
+    showAll();
+  }
+
+  // Popup
+  function showMessage(title, text) {
+    document.getElementById("msgTitle").innerHTML = title;
+    document.getElementById("msgText").textContent = text;
+    document.getElementById("msgPopup").style.display = "block";
+  }
+
+  function closeMsgPopup() {
+    document.getElementById("msgPopup").style.display = "none";
+  }
+
+  // Run when the page opens
+  loadTasks();
+  showAll();
+</script>
+
+</body>
+</html>
